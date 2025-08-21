@@ -1,0 +1,36 @@
+version: '3.7'
+services:
+  airflow:
+    image: apache/airflow:2.7.1
+    container_name: airflow
+    restart: always
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+      - AIRFLOW__CORE__LOGS_FOLDER=/opt/airflow/logs
+      - AIRFLOW__CORE__PLUGINS_FOLDER=/opt/airflow/plugins
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./src:/opt/airflow/src
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "airflow db init && 
+               airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com --quiet &&
+               airflow webserver"
+  scheduler:
+    image: apache/airflow:2.7.1
+    container_name: airflow_scheduler
+    restart: always
+    depends_on:
+      - airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./src:/opt/airflow/src
+    command: >
+      bash -c "airflow scheduler"
