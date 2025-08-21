@@ -4,21 +4,20 @@ from datetime import datetime
 import pandas as pd
 import requests
 
-# Logging
+# Logging configuration
 logging.basicConfig(filename="ingestion.log", level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
-RAW_DIR = "./raw_data"
-MERGED_FILE = "./processed/merged_churn.csv"
-
+RAW_DIR = "raw_data"
+MERGED_FILE = "data/processed/merged_churn.csv"
 os.makedirs(RAW_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(MERGED_FILE), exist_ok=True)
 
-# Store paths of ingested raw files
+# Store raw file paths dynamically
 raw_files = []
 
 def ingest_csv():
-    df = pd.read_csv("WA_Fn-UseC_-Telco-Customer-Churn.csv")
+    df = pd.read_csv("Telco-Customer-Churn.csv")  # adjust path if needed
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     raw_path = f"{RAW_DIR}/raw_churn_csv_{ts}.csv"
     df.to_csv(raw_path, index=False)
@@ -45,9 +44,26 @@ def merge_all():
         df = pd.read_csv(file_path)
         merged_df = pd.concat([merged_df, df], ignore_index=True)
     merged_df.to_csv(MERGED_FILE, index=False)
-    logging.info(f"All ingested files merged into: {MERGED_FILE}")
+    logging.info(f"Merged CSV saved at: {MERGED_FILE}")
+    return MERGED_FILE
+
+def run_dvc_versioning():
+    """Automatically run DVC versioning after ingestion"""
+    import subprocess
+    versioning_script = os.path.join("src", "versioning", "dvc_versioning.py")
+    if os.path.exists(versioning_script):
+        subprocess.run(f"python {versioning_script}", shell=True, check=True)
+        logging.info("DVC versioning executed successfully.")
+    else:
+        logging.warning(f"DVC versioning script not found: {versioning_script}")
 
 if __name__ == "__main__":
-    df_csv = ingest_csv()
-    df_api = ingest_api()
+    # Step 1: Ingest CSV + API
+    ingest_csv()
+    ingest_api()
+
+    # Step 2: Merge all raw files
     merge_all()
+
+    # Step 3: Run DVC versioning automatically
+    run_dvc_versioning()
