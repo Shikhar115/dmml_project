@@ -7,35 +7,65 @@ This repository implements a **full end-to-end churn prediction pipeline** for a
 ## **Project Structure**
 
 dmml_project/
+
 ├─ dags/
+
 │ └─ churn_pipeline_dag.py # Airflow DAG orchestrating the pipeline
+
 ├─ src/
+
 │ ├─ ingestion/
+
 │ │ └─ ingest.py # Ingest CSV/API and merge raw data
+
 │ ├─ validation/
+
 │ │ └─ validate.py # Data quality validation
+
 │ ├─ preprocessing/
+
 │ │ └─ preprocess.py # Data preprocessing on merged CSV
+
 │ ├─ versioning/
+
 │ │ └─ dvc_versioning.py # DVC versioning scripts
+
 │ ├─ feature_engineering/
+
 │ │ └─ features.py # Derived feature creation
+
 │ ├─ feature_store/
+
 │ │ └─ export.py # Export features to Feast CSV
+
 │ └─ modeling/
+
 │ └─ train.py # Train 7 ML models + ROC/AUC
+
 ├─ raw_data/ # Raw CSV/API files created at runtime
+
 ├─ data/
+
 │ └─ processed/
+
 │ └─ merged_churn.csv # Merged raw CSV
+
 │ └─ clean_churn.csv # Preprocessed CSV
+
 ├─ models/ # Trained model pickle files
+
 ├─ reports/
+
 │ ├─ plots/ # Confusion matrix, ROC curve, classification report
+
 │ ├─ model_performance_.txt
+
 │ └─ model_performance_.csv
+
 ├─ ingestion.log # Logging for ingestion/preprocessing
+
 ├─ modeling.log # Logging for modeling
+
 └─ README.md # Project documentation
 
 markdown
