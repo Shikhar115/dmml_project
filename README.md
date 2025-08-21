@@ -4,26 +4,55 @@
 
 
 .
-├─ churn_pipeline_dag.py          → Airflow DAG for orchestration (ingestion → validation → prep → feature eng → train)
+dmml_project/
 
-├─ export_to_feast_csv.py         → Exports engineered features to CSV for Feast
+├─ dags/
 
-├─ feature_repo/                  → Feast feature store configuration
-│   ├─ feature_store.yaml
-│   ├─ feature_views.py
-│   └─ README.md                  → metadata of features (name, source, version)
+│  └─ churn_pipeline_dag.py
 
-├─ raw_data/                      → Versioned raw data (tracked with DVC)
-│   └─ raw_churn_csv_*.csv
+├─ src/
 
-├─ clean_churn_csv.csv            → Cleaned dataset (tracked with DVC)
+│  ├─ __init__.py
 
-├─ transformed_churn.csv          → Engineered features exported for Feast (tracked with DVC)
+│  ├─ ingestion/
 
-├─ transformed_churn.db           → SQLite copy of engineered features
+│  │  ├─ __init__.py
 
-├─ test_feature_retrieval.py      → Sample script to fetch features from the Feast store
+│  │  └─ ingest.py
 
-├─ CHANGELOG.md                   → Describes data version changes and timestamps
+│  ├─ validation/
 
-└─ VERSIONING_WORKFLOW.md         → Step-by-step instructions for updating dataset versions with DVC
+│  │  ├─ __init__.py
+
+│  │  └─ validate.py
+
+│  ├─ preprocessing/
+
+│  │  ├─ __init__.py
+
+│  │  └─ preprocess.py
+
+│  ├─ versioning/
+
+│  │  ├─ __init__.py
+
+│  │  └─ dvc_versioning.py
+
+│  ├─ feature_engineering/
+
+│  │  ├─ __init__.py
+
+│  │  └─ features.py
+
+│  └─ feature_store/
+
+│     ├─ __init__.py
+
+│     └─ export.py
+
+├─ raw_data/                 # created at runtime by ingestion
+
+├─ ingestion.log             # same log filename as before
+
+└─ (your Telco CSV in repo root, same as before)
+
