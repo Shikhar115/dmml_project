@@ -1,94 +1,197 @@
-# dmml_project
+# DMML Project – Telco Customer Churn Prediction
 
+This repository implements a **full end-to-end churn prediction pipeline** for a telecom dataset, including **data ingestion, validation, preprocessing, feature engineering, model training, and feature export**. The pipeline is orchestrated with **Airflow**, versioned using **DVC + Git**, and trained models are logged with **MLflow**.
 
+---
 
-.
+## **Project Structure**
+
 dmml_project/
-
 ├─ dags/
-
-│   └─ churn_pipeline_dag.py
-
+│ └─ churn_pipeline_dag.py # Airflow DAG orchestrating the pipeline
 ├─ src/
-
-│   ├─ __init__.py
-
-│   ├─ ingestion/
-
-│   │   ├─ __init__.py
-
-│   │   └─ ingest.py
-
-│   ├─ validation/
-
-│   │   ├─ __init__.py
-
-│   │   └─ validate.py
-
-│   ├─ preprocessing/
-
-│   │   ├─ __init__.py
-
-│   │   └─ preprocess.py
-
-│   ├─ versioning/
-
-│   │   ├─ __init__.py
-
-│   │   └─ dvc_versioning.py
-
-│   ├─ feature_engineering/
-
-│   │   ├─ __init__.py
-
-│   │   └─ features.py
-
-│   ├─ feature_store/
-
-│   │   ├─ __init__.py
-
-│   │   └─ export.py
-
-│   └─ modeling/
-
-│       ├─ __init__.py
-
-│       └─ train.py      # (latest training script with 7 models + ROC/AUC)
-
-├─ raw_data/      # created at runtime by ingestion
-
-│   └─ Telco-Customer-Churn.csv (copied here after ingestion)
-
+│ ├─ ingestion/
+│ │ └─ ingest.py # Ingest CSV/API and merge raw data
+│ ├─ validation/
+│ │ └─ validate.py # Data quality validation
+│ ├─ preprocessing/
+│ │ └─ preprocess.py # Data preprocessing on merged CSV
+│ ├─ versioning/
+│ │ └─ dvc_versioning.py # DVC versioning scripts
+│ ├─ feature_engineering/
+│ │ └─ features.py # Derived feature creation
+│ ├─ feature_store/
+│ │ └─ export.py # Export features to Feast CSV
+│ └─ modeling/
+│ └─ train.py # Train 7 ML models + ROC/AUC
+├─ raw_data/ # Raw CSV/API files created at runtime
 ├─ data/
-
-│   └─ processed/
-
-│       └─ clean_churn.csv   # after preprocessing & feature engineering
-
-├─ models/
-
-│   └─ <best_model_name>_churn_model.pkl   # saved model
-
+│ └─ processed/
+│ └─ merged_churn.csv # Merged raw CSV
+│ └─ clean_churn.csv # Preprocessed CSV
+├─ models/ # Trained model pickle files
 ├─ reports/
+│ ├─ plots/ # Confusion matrix, ROC curve, classification report
+│ ├─ model_performance_.txt
+│ └─ model_performance_.csv
+├─ ingestion.log # Logging for ingestion/preprocessing
+├─ modeling.log # Logging for modeling
+└─ README.md # Project documentation
 
-│   ├─ plots/
+markdown
+Copy
+Edit
 
-│   │   ├─ <Model>_confusion_matrix.png
+---
 
-│   │   ├─ <Model>_roc_curve.png
+## **Pipeline Overview**
 
-│   │   └─ <Model>_classification_report.txt
+The pipeline orchestrates the following steps:
 
-│   ├─ model_performance_<timestamp>.txt
+1. **Data Ingestion & Merging**
+   - Ingest CSV (`Telco-Customer-Churn.csv`) and API JSON.
+   - Merge into a single CSV (`data/processed/merged_churn.csv`).
+   - Version raw + merged data using **DVC**.
 
-│   └─ model_performance_<timestamp>.csv
+2. **Data Validation**
+   - Checks for missing values, duplicates, invalid types, and outliers.
+   - Generates PDF data quality reports.
 
-├─ ingestion.log
+3. **Preprocessing**
+   - Imputes missing values for numeric and categorical features.
+   - One-hot encodes categorical columns.
+   - Standardizes numeric features.
+   - Saves cleaned CSV (`data/processed/clean_churn.csv`).
 
-├─ modeling.log
+4. **Feature Engineering**
+   - Creates derived features:
+     - `total_spend = MonthlyCharges * tenure`
+     - `tenure_years = tenure / 12`
+     - `long_term_customer = (tenure > 24)`
+   - Stores features in SQLite database (`transformed_churn.db`).
 
-└─ (Telco CSV in repo root if you kept original)
+5. **Feature Export**
+   - Exports engineered features from SQLite to **Feast-compatible CSV** (`transformed_churn.csv`).
+   - Adds `event_timestamp`.
 
-<img width="1589" height="1010" alt="image" src="https://github.com/user-attachments/assets/672a481b-cc17-46c0-a2ab-86a65ec705b5" />
+6. **Model Training**
+   - Trains 7 models:
+     - Logistic Regression, Random Forest, Gradient Boosting, SVM, Decision Tree, KNN, XGBoost
+   - Evaluates metrics: Accuracy, Precision, Recall, F1-score, ROC/AUC
+   - Saves:
+     - Best model (`models/<best_model_name>_churn_model.pkl`)
+     - Performance reports (`reports/`)
+     - Confusion matrix, ROC curve plots
 
+---
 
+## **Pipeline DAG (Mermaid Diagram)**
+
+```mermaid
+flowchart TD
+    A[Ingest CSV + API → Merge → DVC] --> B[Validate Data]
+    B --> C[Preprocess]
+    C --> D[Feature Engineering]
+    D --> E[Export to Feast CSV]
+    D --> F[Train Models]
+    E --> F
+Legend:
+
+D splits to E (feature export) and F (model training).
+
+All downstream tasks depend on clean preprocessed data.
+
+DVC Workflow
+Initialize DVC
+
+bash
+Copy
+Edit
+git init
+dvc init
+Add raw or merged datasets
+
+bash
+Copy
+Edit
+dvc add data/processed/merged_churn.csv
+git add data/processed/merged_churn.csv.dvc .gitignore
+git commit -m "Add merged churn dataset"
+Push to remote (optional)
+
+bash
+Copy
+Edit
+dvc remote add -d myremote gdrive://<folder-id>
+dvc push
+Version updates
+
+Re-run pipeline → updated CSV → dvc add → commit → DVC push
+
+Use Git tags to mark dataset/model versions.
+
+Airflow DAG
+DAG: churn_pipeline_dag
+
+Flow:
+
+mathematica
+Copy
+Edit
+Ingest CSV/API → Merge → DVC
+          ↓
+      Validate Data
+          ↓
+       Preprocess
+          ↓
+Feature Engineering
+          ↓
+Export to Feast
+          ↓
+    Train Models
+Tasks are implemented as PythonOperators calling functions from src/.
+
+Usage
+Run DAG in Airflow
+
+bash
+Copy
+Edit
+airflow db init
+airflow webserver --port 8080
+airflow scheduler
+Trigger churn_pipeline_dag from the Airflow UI or CLI.
+
+Check Logs
+
+ingestion.log → ingestion/preprocessing
+
+modeling.log → training metrics and errors
+
+Explore Models & Reports
+
+models/ → saved models
+
+reports/ → evaluation metrics and plots
+
+data/processed/ → merged & cleaned CSV
+
+transformed_churn.db → engineered features
+
+transformed_churn.csv → CSV for Feast feature store
+
+Dependencies
+Python 3.8+
+
+pandas, numpy, scikit-learn, xgboost, matplotlib, seaborn
+
+mlflow, airflow
+
+DVC
+
+SQLite3
+
+Contact / Maintainer
+Project maintained by [Your Name]
+
+For questions or issues, please open a GitHub issue or contact via email.
