@@ -2,13 +2,18 @@ import os
 import logging
 from datetime import datetime
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
-# same log file name as your original global config
-logging.basicConfig(filename="ingestion.log", level=logging.INFO)
+# Logging
+logging.basicConfig(filename="ingestion.log", level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+MERGED_FILE = "./processed/merged_churn.csv"
 
 def validate():
     """
-    Advanced data validation:
+    Validate merged churn data:
     - missing values
     - duplicated rows
     - numeric range checks
@@ -16,40 +21,39 @@ def validate():
     - simple anomaly/outlier detection (z-score > 3)
     - PDF data quality report
     """
-    import matplotlib.pyplot as plt
-    import numpy as np
+    if not os.path.exists(MERGED_FILE):
+        logging.error(f"Merged file not found: {MERGED_FILE}")
+        return
 
+    df = pd.read_csv(MERGED_FILE)
     issues = []
 
-    for fname in os.listdir("./raw_data"):
-        df = pd.read_csv("./raw_data/" + fname)
+    # 1. Missing values
+    miss = df.isnull().sum()
+    for col, cnt in miss.items():
+        if cnt > 0:
+            issues.append(("merged_churn", col, "missing_values", int(cnt)))
 
-        # 1. Missing values
-        miss = df.isnull().sum()
-        for col, cnt in miss.items():
-            if cnt > 0:
-                issues.append((fname, col, "missing_values", int(cnt)))
+    # 2. Duplicate rows
+    dup = int(df.duplicated().sum())
+    if dup > 0:
+        issues.append(("merged_churn", "ALL", "duplicate_rows", dup))
 
-        # 2. Duplicate rows
-        dup = int(df.duplicated().sum())
-        if dup > 0:
-            issues.append((fname, "ALL", "duplicate_rows", dup))
-
-        # 3. Data type / range check (example)
-        for col in df.columns:
-            if df[col].dtype in ["int64","float64"]:
-                # Range check (>= 0)
-                if (df[col] < 0).any():
-                    issues.append((fname, col, "negative_value", int((df[col] < 0).sum())))
-                # Outlier check (z-score)
+    # 3. Data type / range / outlier checks
+    for col in df.columns:
+        if df[col].dtype in ["int64", "float64"]:
+            # Range check (>= 0)
+            if (df[col] < 0).any():
+                issues.append(("merged_churn", col, "negative_value", int((df[col] < 0).sum())))
+            # Outlier check (z-score > 3)
+            if df[col].std() > 0:  # avoid division by zero
                 z_scores = np.abs((df[col] - df[col].mean()) / df[col].std())
                 out_count = int((z_scores > 3).sum())
                 if out_count > 0:
-                    issues.append((fname, col, "outliers", out_count))
-            else:
-                # type check
-                if not pd.api.types.is_string_dtype(df[col]):
-                    issues.append((fname, col, "unexpected_type", str(df[col].dtype)))
+                    issues.append(("merged_churn", col, "outliers", out_count))
+        else:
+            if not pd.api.types.is_string_dtype(df[col]):
+                issues.append(("merged_churn", col, "unexpected_type", str(df[col].dtype)))
 
     # ------ Generate PDF report ------
     report_path = f"data_quality_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -68,3 +72,6 @@ def validate():
     plt.close()
 
     logging.info(f"✅ Data validation completed. Report written to: {report_path}")
+
+if __name__ == "__main__":
+    validate()
