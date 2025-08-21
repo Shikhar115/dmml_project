@@ -1,5 +1,8 @@
 # dmml_project
 
+<img width="1589" height="1010" alt="image" src="https://github.com/user-attachments/assets/672a481b-cc17-46c0-a2ab-86a65ec705b5" />
+
+
 .
 ├─ churn_pipeline_dag.py          → Airflow DAG for orchestration (ingestion → validation → prep → feature eng → train)
 
