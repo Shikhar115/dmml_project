@@ -12,8 +12,9 @@ dmml_project/
 │   ├─ __init__.py
 
 │   ├─ ingestion/
-   │   │   ├─ __init__.py
-   │   │   └─ ingest.py
+
+│   │   ├─ __init__.py
+│   │   └─ ingest.py
 
 │   ├─ validation/
 
