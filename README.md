@@ -1,6 +1,5 @@
 # dmml_project
 
-<img width="1589" height="1010" alt="image" src="https://github.com/user-attachments/assets/672a481b-cc17-46c0-a2ab-86a65ec705b5" />
 
 
 .
@@ -54,5 +53,8 @@ dmml_project/
 
 ├─ ingestion.log             # same log filename as before
 
-└─ (your Telco CSV in repo root, same as before)
+└─ (Telco CSV in repo root)
+
+<img width="1589" height="1010" alt="image" src="https://github.com/user-attachments/assets/672a481b-cc17-46c0-a2ab-86a65ec705b5" />
+
 
