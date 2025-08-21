@@ -115,28 +115,36 @@ The pipeline orchestrates the following steps:
 
 ---
 
-## **Pipeline DAG (Mermaid Diagram)**
+## **Pipeline DAG (Simple ASCII Diagram)**
 
-```mermaid
-flowchart TD
-    A[Ingest CSV + API → Merge → DVC] --> B[Validate Data]
-    B --> C[Preprocess]
-    C --> D[Feature Engineering]
-    D --> E[Export to Feast CSV]
-    D --> F[Train Models]
-    E --> F
-Legend:
+Ingest CSV/API -> Merge -> DVC
+|
+v
+Validate Data
+|
+v
+Preprocess
+|
+v
+Feature Engineering
+/
+v v
+Export to Feast Train Models
 
-D splits to E (feature export) and F (model training).
-
-All downstream tasks depend on clean preprocessed data.
-
-DVC Workflow
-Initialize DVC
-
-bash
+yaml
 Copy
 Edit
+
+**Legend:**  
+- Data flows from top to bottom.  
+- Feature Engineering splits into feature export and model training.
+
+---
+
+## **DVC Workflow**
+
+1. **Initialize DVC**
+```bash
 git init
 dvc init
 Add raw or merged datasets
@@ -165,20 +173,18 @@ DAG: churn_pipeline_dag
 
 Flow:
 
-mathematica
+rust
 Copy
 Edit
-Ingest CSV/API → Merge → DVC
-          ↓
+Ingest CSV/API -> Merge -> DVC
+          |
       Validate Data
-          ↓
+          |
        Preprocess
-          ↓
-Feature Engineering
-          ↓
-Export to Feast
-          ↓
-    Train Models
+          |
+  Feature Engineering
+       /       \
+Export to Feast  Train Models
 Tasks are implemented as PythonOperators calling functions from src/.
 
 Usage
