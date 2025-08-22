@@ -26,6 +26,16 @@ http://localhost:8080
 
 now loin with credentials
 
+check---
+Check the status of containers
+
+Run:
+
+docker ps -a
+
+
+Look for airflow_scheduler and airflow containers. If the scheduler is Restarting or Exited, it won’t work.
+
 
 # DMML Project – Telco Customer Churn Prediction
 
