@@ -16,6 +16,10 @@ Then initialize the database and create admin user:
 docker-compose run airflow airflow db init
 docker-compose run airflow airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com
 
+for ex---
+
+docker-compose exec airflow airflow users create --username churnproject --password dmml --firstname shikhar --lastname nigam --role Admin --email shikharnigam22@gmail.com
+
 
 Finally, open the Airflow webserver at:
 http://localhost:8080
