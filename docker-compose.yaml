@@ -1,11 +1,12 @@
 version: '3.7'
+
 services:
   airflow:
     image: apache/airflow:2.7.1
     container_name: airflow
     restart: always
     environment:
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
       - AIRFLOW__CORE__LOGS_FOLDER=/opt/airflow/logs
@@ -18,9 +19,8 @@ services:
     ports:
       - "8080:8080"
     command: >
-      bash -c "airflow db init && 
-               airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com --quiet &&
-               airflow webserver"
+      bash -c "airflow db init && airflow webserver"
+
   scheduler:
     image: apache/airflow:2.7.1
     container_name: airflow_scheduler
