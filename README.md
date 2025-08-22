@@ -1,3 +1,28 @@
+4️⃣ Rebuild and start fresh
+
+Steps to run this cleanly on Windows
+
+Stop and remove existing containers (to avoid conflicts):
+
+docker-compose down --volumes --remove-orphans
+
+After cleaning up, start from scratch:
+
+docker-compose up -d
+
+
+Then initialize the database and create admin user:
+
+docker-compose run airflow airflow db init
+docker-compose run airflow airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com
+
+
+Finally, open the Airflow webserver at:
+http://localhost:8080
+
+now loin with credentials
+
+
 # DMML Project – Telco Customer Churn Prediction
 
 This repository implements a full end-to-end churn prediction pipeline for a telecom dataset, including data ingestion, validation, preprocessing, feature engineering, model training, and feature export. The pipeline is orchestrated with Airflow, versioned using DVC + Git, and trained models are logged with MLflow.
