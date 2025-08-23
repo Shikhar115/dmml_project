@@ -9,6 +9,7 @@ docker-compose down
 After cleaning up, start from scratch:
 
 docker compose build --no-cache
+
 docker-compose up -d --build
 
 
