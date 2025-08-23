@@ -4,11 +4,12 @@ Steps to run this cleanly on Windows
 
 Stop and remove existing containers (to avoid conflicts):
 
-docker-compose down --volumes --remove-orphans
+docker-compose down 
 
 After cleaning up, start from scratch:
 
-docker-compose up -d
+docker compose build --no-cache
+docker-compose up -d --build
 
 
 Then initialize the database and create admin user:
